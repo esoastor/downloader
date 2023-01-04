@@ -60,7 +60,7 @@ class Downloader
 
                 if (is_file($filePath) && filesize($filePath) > 0 && $overwrite === false)
                 {
-                    $this?->reporter->skip($name, $url);
+                    $this?->reporter->skip($filePath, $url);
                     continue;
                 }
 
@@ -68,14 +68,14 @@ class Downloader
 
                 if (!$isURLValid)
                 {
-                    $this?->reporter->invalid($name, $url);
+                    $this?->reporter->invalid($filePath, $url);
                     continue;
                 }
                 
                 $this?->events->execute('StartDownload', []);
                 $this->downloadFileToFolder($filePath, $url);
                 $this?->events->execute('FinishDownload', []);
-                $this?->reporter->success($name, $url);
+                $this?->reporter->success($filePath, $url);
             }
         }
     }

@@ -4,23 +4,23 @@ namespace Downloader;
 
 class DefaultReporter implements Reporter
 {
-    public function success(string $fileName, string $url): void
+    public function success(string $filePath, string $url): void
     {
-        echo "[\e[0;32mV\e[0m] {$url} \n";
+        echo "[\e[0;32mV\e[0m] {$filePath} \n";
     }
 
-    public function skip(string $fileName, string $url): void
+    public function skip(string $filePath, string $url): void
     {
-        echo "[-] {$url} \n";
+        echo "[-] {$filePath} \n";
     }
 
-    public function invalid(string $fileName, string $url): void
+    public function invalid(string $filePath, string $url): void
     {
-        echo "[\e[0;31mX\e[0m] {$url} \n";
+        echo "[\e[0;31mX\e[0m] {$filePath} \n";
     }
 
-    public function error(string $fileName, string $url, string $errorMessage): void
+    public function error(string $filePath, string $url, string $errorMessage): void
     {
-
+        echo $errorMessage . "\n";
     }
 }
