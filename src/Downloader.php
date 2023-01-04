@@ -8,12 +8,12 @@ class Downloader
     private ?object $events;
     private ?object $reporter;
 
-    public static function get(bool $withReports = true, bool $withEvents = true): self
+    public static function get(bool $withDefaultReports = true): self
     {
         $downloader = new self();
 
-        $reporter = $withReports ? new DefaultReporter() : null;
-        $events = $withEvents ? Events::get() : null;   
+        $reporter = $withDefaultReports ? new DefaultReporter() : null;
+        $events = Events::get();   
 
         $downloader->setReporter($reporter);
         $downloader->setEvents($events);
@@ -29,6 +29,11 @@ class Downloader
     public function setReporter(?Reporter $reporter) 
     {
         $this->reporter = $reporter;
+    }
+
+    public function addListeners(string $eventName, array $listenerClassNames)
+    {
+        $this->events->addListeners($eventName, $listenerClassNames);
     }
 
     /**
@@ -66,9 +71,9 @@ class Downloader
                     continue;
                 }
                 
-                $this->events?->execute('StartDownload', []);
+                $this->events->execute('StartDownload', []);
                 $this->downloadFileToFolder($filePath, $url);
-                $this->events?->execute('FinishDownload', []);
+                $this->events->execute('FinishDownload', []);
                 $this->reporter?->success($filePath, $url);
             }
         }

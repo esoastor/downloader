@@ -24,7 +24,7 @@ class Events
         $this->events = $events;
     }
 
-    public function addListeners(array $eventName, array $listeners): void
+    public function addListeners(string $eventName, array $listeners): void
     {
         $this->events[$eventName] = array_merge($this->events[$eventName], $listeners);
     }
@@ -34,7 +34,7 @@ class Events
         $listeners = $this->events[$eventName];
         foreach ($listeners as $listener)
         {
-            $listener->execute($args);
+            $listener::execute($args);
         }
     }
 }
