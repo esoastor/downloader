@@ -1,6 +1,6 @@
 <?php
 
-namespace Downloader\Listeners;
+namespace Downloader;
 
 interface Listener
 {
