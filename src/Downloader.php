@@ -7,6 +7,7 @@ class Downloader
 {
     private ?object $events;
     private ?object $reporter;
+    private int $downloadAttempts = 30;
 
     public static function get(bool $withDefaultReports = true): self
     {
@@ -79,7 +80,7 @@ class Downloader
         }
     }
 
-    private function downloadFileToFolder(string $filePath, string $url, int $downloadAttempts = 3) : void
+    private function downloadFileToFolder(string $filePath, string $url) : void
     {
         $downloadProcess = true;
         
@@ -94,11 +95,11 @@ class Downloader
             }
             else 
             {
-                if ($downloadAttempts > 0)
+                if ($this->downloadAttempts > 0)
                 {
-                    $errorText = "downloading error, attempts left: $downloadAttempts\n";
+                    $errorText = "downloading error, attempts left: $this->downloadAttempts\n";
                     $this->reporter?->error(basename($filePath), $url, $errorText);
-                    $downloadAttempts -= 1;
+                    $this->downloadAttempts -= 1;
                 }
                 else 
                 {
@@ -130,6 +131,9 @@ class Downloader
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $output = curl_exec($curl);
+        if ($output === false) {
+            echo 'Curl error: ' . curl_error($output);
+        }
         curl_close($curl);
         return $output;
     }
