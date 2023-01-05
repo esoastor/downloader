@@ -11,8 +11,10 @@ class Events
         $events = new self();
         $events->setEvents(
             [
-                'StartDownload' => [], 
-                'FinishDownload' => [],
+                'Start' => [], 
+                'Success' => [],
+                'Error' => [],
+                'Invalid' => []
             ]
         );
 
@@ -29,7 +31,7 @@ class Events
         $this->events[$eventName] = array_merge($this->events[$eventName], $listeners);
     }
 
-    public function execute(string $eventName, array $args): void
+    public function execute(string $eventName, mixed $args): void
     {
         $listeners = $this->events[$eventName];
         foreach ($listeners as $listener)

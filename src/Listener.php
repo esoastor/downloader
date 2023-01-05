@@ -4,5 +4,5 @@ namespace Downloader;
 
 interface Listener
 {
-    public static function execute(...$args): void;
+    public static function execute(mixed ...$args): void;
 }
