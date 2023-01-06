@@ -96,6 +96,7 @@ class Downloader
                     $errorText = "downloading error: {$url}";
                     $this?->reporter->error(basename($filePath), $url, $errorText);
                     $this->events->execute('Error', basename($filePath));
+                    $downloadProcess = false;
                 }
             }
         }
