@@ -7,7 +7,7 @@ class Downloader
 {
     private object $events;
     private object $reporter;
-    private int $downloadAttempts = 30;
+    private int $downloadAttempts = 10;
 
     public static function get(bool $withDefaultReports = true): self
     {
@@ -70,33 +70,37 @@ class Downloader
                 }
                 
                 $this->events->execute('Start', $name);
-                $this->downloadFileToFolder($filePath, $url);
-                $this->events->execute('Success', $name);
-                $this?->reporter->success($filePath, $url);
+
+                $isDownloaded = $this->downloadFileToFolder($filePath, $url);
+
+                if($isDownloaded) {
+                    $this->events->execute('Success', $name);
+                    $this?->reporter->success(basename($filePath), $url);
+                } else {
+                    $this->events->execute('Error', $name);
+                }
             }
         }
     }
 
-    private function downloadFileToFolder(string $filePath, string $url) : void
+    private function downloadFileToFolder(string $filePath, string $url): bool
     {
-        $downloadProcess = true;
-        
-        while ($downloadProcess) {
+        $attempts = $this->downloadAttempts;
+        while (true) {
             $file = $this->fileGetContentCurl($url);
 
             if (mb_strlen($file) > 0) {
                 file_put_contents($filePath, $file);
-                $downloadProcess = false;
+                return true;
             } else {
-                if ($this->downloadAttempts > 0) {
-                    $errorText = "downloading error, attempts left: $this->downloadAttempts\n";
+                if ($attempts > 0) {
+                    $errorText = "download error, attempts left: $attempts";
                     $this?->reporter->error(basename($filePath), $url, $errorText);
-                    $this->downloadAttempts -= 1;
+                    $attempts -= 1;
                 } else {
-                    $errorText = "downloading error: {$url}";
+                    $errorText = "download failed";
                     $this?->reporter->error(basename($filePath), $url, $errorText);
-                    $this->events->execute('Error', basename($filePath));
-                    $downloadProcess = false;
+                    return false;
                 }
             }
         }
