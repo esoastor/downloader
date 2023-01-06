@@ -5,25 +5,20 @@ namespace Downloader;
 class Events
 {
     private array $events;
+    private array $listenerInstances;
 
     public static function get(): self
     {
         $events = new self();
-        $events->setEvents(
-            [
+        $events->events = [
                 'Start' => [], 
                 'Success' => [],
                 'Error' => [],
-                'Invalid' => []
-            ]
-        );
+                'Invalid' => [],
+            ];
+        $events->listenerInstances = [];
 
         return $events;
-    }
-
-    private function setEvents(array $events): void
-    {
-        $this->events = $events;
     }
 
     public function addListeners(string $eventName, array $listeners): void
@@ -36,7 +31,10 @@ class Events
         $listeners = $this->events[$eventName];
         foreach ($listeners as $listener)
         {
-            $listener::execute($args);
+            if (!isset($this->listenerInstances[$listener])) {
+                $this->listenerInstances[$listener] = new $listener;
+            }
+            $this->listenerInstances[$listener]->execute($args);
         }
     }
 }

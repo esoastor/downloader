@@ -5,8 +5,8 @@ namespace Downloader;
 
 class Downloader 
 {
-    private ?object $events;
-    private ?object $reporter;
+    private object $events;
+    private object $reporter;
     private int $downloadAttempts = 30;
 
     public static function get(bool $withDefaultReports = true): self
@@ -14,20 +14,22 @@ class Downloader
         $downloader = new self();
 
         $reporter = $withDefaultReports ? new DefaultReporter() : null;
-        $events = Events::get();   
+        if ($reporter) {
+            $downloader->setReporter($reporter);
+        }
 
-        $downloader->setReporter($reporter);
+        $events = Events::get();   
         $downloader->setEvents($events);
 
         return $downloader;
     }
 
-    public function setEvents(?Events $events)
+    public function setEvents(Events $events)
     {
         $this->events = $events;
     }
 
-    public function setReporter(?Reporter $reporter) 
+    public function setReporter(Base\Reporter $reporter) 
     {
         $this->reporter = $reporter;
     }
@@ -55,14 +57,14 @@ class Downloader
                 $filePath = $parentFolder . '/' . $name;
 
                 if (is_file($filePath) && filesize($filePath) > 0 && $overwrite === false) {
-                    $this->reporter?->skip($filePath, $url);
+                    $this?->reporter->skip($filePath, $url);
                     continue;
                 }
 
                 $isURLValid = $this->validateURL($url);
 
                 if (!$isURLValid) {
-                    $this->reporter?->invalid($filePath, $url);
+                    $this?->reporter->invalid($filePath, $url);
                     $this->events->execute('Invalid', $name);
                     continue;
                 }
@@ -70,7 +72,7 @@ class Downloader
                 $this->events->execute('Start', $name);
                 $this->downloadFileToFolder($filePath, $url);
                 $this->events->execute('Success', $name);
-                $this->reporter?->success($filePath, $url);
+                $this?->reporter->success($filePath, $url);
             }
         }
     }
@@ -88,13 +90,12 @@ class Downloader
             } else {
                 if ($this->downloadAttempts > 0) {
                     $errorText = "downloading error, attempts left: $this->downloadAttempts\n";
-                    $this->reporter?->error(basename($filePath), $url, $errorText);
+                    $this?->reporter->error(basename($filePath), $url, $errorText);
                     $this->downloadAttempts -= 1;
                 } else {
                     $errorText = "downloading error: {$url}";
-                    $this->reporter?->error(basename($filePath), $url, $errorText);
+                    $this?->reporter->error(basename($filePath), $url, $errorText);
                     $this->events->execute('Error', basename($filePath));
-                    die;
                 }
             }
         }
@@ -141,5 +142,4 @@ class Downloader
             }
         }
     }
-    
 }

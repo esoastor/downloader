@@ -1,6 +1,6 @@
 <?php
 
-namespace Downloader;
+namespace Downloader\Base;
 
 interface Reporter 
 {

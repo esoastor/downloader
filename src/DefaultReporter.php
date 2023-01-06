@@ -2,7 +2,7 @@
 
 namespace Downloader;
 
-class DefaultReporter implements Reporter
+class DefaultReporter implements Base\Reporter
 {
     public function success(string $filePath, string $url): void
     {
@@ -21,6 +21,7 @@ class DefaultReporter implements Reporter
 
     public function error(string $filePath, string $url, string $errorMessage): void
     {
+        echo "[\e[0;31mX\e[0m] {$filePath} \n";
         echo $errorMessage . "\n";
     }
 }
