@@ -6,20 +6,22 @@ namespace Downloader;
 class Downloader 
 {
     private object $events;
-    private object $reporter;
+    private string $errorText = '';
     private int $downloadAttempts = 10;
 
     public static function get(bool $withDefaultReports = true): self
     {
         $downloader = new self();
 
-        $reporter = $withDefaultReports ? new DefaultReporter() : null;
-        if ($reporter) {
-            $downloader->setReporter($reporter);
-        }
-
         $events = Events::get();   
         $downloader->setEvents($events);
+
+        if ($withDefaultReports) {
+            $downloader->addListeners('Success', [Base\Default\SuccessConsoleReport::class]);
+            $downloader->addListeners('Skip', [Base\Default\SkipConsoleReport::class]);
+            $downloader->addListeners('Invalid', [Base\Default\InvalidConsoleReport::class]);
+            $downloader->addListeners('Error', [Base\Default\ErrorConsoleReport::class]);
+        }
 
         return $downloader;
     }
@@ -27,11 +29,6 @@ class Downloader
     public function setEvents(Events $events)
     {
         $this->events = $events;
-    }
-
-    public function setReporter(Base\Reporter $reporter) 
-    {
-        $this->reporter = $reporter;
     }
 
     public function addListeners(string $eventName, array $listenerClassNames)
@@ -57,14 +54,13 @@ class Downloader
                 $filePath = $parentFolder . '/' . $name;
 
                 if (is_file($filePath) && filesize($filePath) > 0 && $overwrite === false) {
-                    $this?->reporter->skip($filePath, $url);
+                    $this->events->execute('Skip', $name);
                     continue;
                 }
 
                 $isURLValid = $this->validateURL($url);
 
                 if (!$isURLValid) {
-                    $this?->reporter->invalid($filePath, $url);
                     $this->events->execute('Invalid', $name);
                     continue;
                 }
@@ -75,9 +71,9 @@ class Downloader
 
                 if($isDownloaded) {
                     $this->events->execute('Success', $name);
-                    $this?->reporter->success(basename($filePath), $url);
                 } else {
-                    $this->events->execute('Error', $name);
+                    $this->events->execute('Error', $name, $this->errorText);
+                    $this->errorText = '';
                 }
             }
         }
@@ -94,12 +90,10 @@ class Downloader
                 return true;
             } else {
                 if ($attempts > 0) {
-                    $errorText = "download error, attempts left: $attempts";
-                    $this?->reporter->error(basename($filePath), $url, $errorText);
+                    $this->errorText = "download error, attempts left: $attempts";
                     $attempts -= 1;
                 } else {
-                    $errorText = "download failed";
-                    $this?->reporter->error(basename($filePath), $url, $errorText);
+                    $this->errorText = "download failed";
                     return false;
                 }
             }

@@ -13,6 +13,7 @@ class Events
         $events->events = [
                 'Start' => [], 
                 'Success' => [],
+                'Skip' => [],
                 'Error' => [],
                 'Invalid' => [],
             ];
