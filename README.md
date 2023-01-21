@@ -1,7 +1,7 @@
 # Downloader with Events and Reporter #
 
 ## Usage ##
-Get standart downloader with Downloader::get(), or configurate custom event handlers and/or custom reporter
+Get standart downloader with Downloader::get(), use enableDefaultReports() to enable console report, configurate custom event handlers if needed
 
 ### event listeners: ###
 There are four types of events - 'Start', 'Success', 'Error', 'Invalid'
@@ -13,7 +13,3 @@ $downloader->addListeners('Success', [Listeners\Success::class]);
 $downloader->addListeners('Error', [Listeners\Error::class]);
 $downloader->addListeners('Invalid', [Listeners\Invalid::class]);
 ```
-
-### custom reporter ### 
-1 - create class that implements Downloader\Base\Reporter
-2 - set it to instance of downloader with setReporter()

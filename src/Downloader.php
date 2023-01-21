@@ -9,21 +9,22 @@ class Downloader
     private string $errorText = '';
     private int $downloadAttempts = 10;
 
-    public static function get(bool $withDefaultReports = true): self
+    public static function get(): self
     {
         $downloader = new self();
 
         $events = Events::get();   
         $downloader->setEvents($events);
 
-        if ($withDefaultReports) {
-            $downloader->addListeners('Success', [Base\Default\SuccessConsoleReport::class]);
-            $downloader->addListeners('Skip', [Base\Default\SkipConsoleReport::class]);
-            $downloader->addListeners('Invalid', [Base\Default\InvalidConsoleReport::class]);
-            $downloader->addListeners('Error', [Base\Default\ErrorConsoleReport::class]);
-        }
-
         return $downloader;
+    }
+
+    public function enableDefaultReports() 
+    {
+        $this->addListeners('Success', [Base\Default\SuccessConsoleReport::class]);
+        $this->addListeners('Skip', [Base\Default\SkipConsoleReport::class]);
+        $this->addListeners('Invalid', [Base\Default\InvalidConsoleReport::class]);
+        $this->addListeners('Error', [Base\Default\ErrorConsoleReport::class]);
     }
 
     public function setEvents(Events $events)
