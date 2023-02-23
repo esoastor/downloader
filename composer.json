@@ -1,0 +1,9 @@
+{
+    "name": "esoastor/downloader",
+    "autoload": {
+        "psr-4": {
+            "Downloader\\": "src/"
+        }
+    },
+    "require": {}
+}
