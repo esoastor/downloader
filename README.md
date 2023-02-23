@@ -13,3 +13,7 @@ $downloader->addListeners('Success', [Listeners\Success::class]);
 $downloader->addListeners('Error', [Listeners\Error::class]);
 $downloader->addListeners('Invalid', [Listeners\Invalid::class]);
 ```
+### download: ###
+$stryctureInfo : [folder_name] => [file_name => file_link...], вложенность может быть любой
+
+$downloader->download($stryctureInfo, $parentFolder, $overwrite); 
