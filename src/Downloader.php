@@ -40,11 +40,13 @@ class Downloader
     /**
      * @param $stryctureInfo принимает структуру вида [folder_name] => [file_name => file_link...], вложенность может быть любой
      */
-    public function download(array $structureInfo, string $parentFolder = '', bool $overwrite = false) : void
+    public function download(array $structureInfo, string $parentFolder = '.', bool $overwrite = false) : void
     {
-        foreach ($structureInfo as $name => $content) {
+        if ($parentFolder !== '.') {
             $this->createDirIfNotExists($parentFolder);
+        }
 
+        foreach ($structureInfo as $name => $content) {
             if (is_array($content)) {
                 $dirName = $parentFolder . '/' . $name;
                 $this->createDirIfNotExists($dirName);
