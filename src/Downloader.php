@@ -3,7 +3,7 @@
 namespace Downloader;
 
 
-class Downloader 
+class Downloader
 {
     private object $events;
     private string $errorText = '';
@@ -13,13 +13,13 @@ class Downloader
     {
         $downloader = new self();
 
-        $events = Events::get();   
+        $events = Events::get();
         $downloader->setEvents($events);
 
         return $downloader;
     }
 
-    public function enableDefaultReports() 
+    public function enableDefaultReports()
     {
         $this->addListeners('Success', [Base\Default\SuccessConsoleReport::class]);
         $this->addListeners('Skip', [Base\Default\SkipConsoleReport::class]);
@@ -40,7 +40,7 @@ class Downloader
     /**
      * @param $stryctureInfo принимает структуру вида [folder_name] => [file_name => file_link...], вложенность может быть любой
      */
-    public function download(array $structureInfo, string $parentFolder = '.', bool $overwrite = false) : void
+    public function download(array $structureInfo, string $parentFolder = '.', bool $overwrite = false): void
     {
         if ($parentFolder !== '.') {
             $this->createDirIfNotExists($parentFolder);
@@ -67,12 +67,12 @@ class Downloader
                     $this->events->execute('Invalid', $name);
                     continue;
                 }
-                
+
                 $this->events->execute('Start', $name);
 
                 $isDownloaded = $this->downloadFileToFolder($filePath, $url);
 
-                if($isDownloaded) {
+                if ($isDownloaded) {
                     $this->events->execute('Success', $name);
                 } else {
                     $this->events->execute('Error', $name, $this->errorText);
@@ -103,14 +103,14 @@ class Downloader
         }
     }
 
-    private function createDirIfNotExists(string $dirname) : void
+    private function createDirIfNotExists(string $dirname): void
     {
         if (!is_dir($dirname)) {
             mkdir($dirname);
         }
     }
 
-    private function fileGetContentCurl(string $url) : string
+    private function fileGetContentCurl(string $url): string
     {
         if (!function_exists('curl_init')) {
             echo 'CURL not installed';
@@ -120,16 +120,24 @@ class Downloader
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, static function ($resource, $download_size, $downloaded, $upload_size, $uploaded) {
+            if ($download_size > 0)
+                echo $downloaded / $download_size  * 100;
+            ob_flush();
+            flush();
+            sleep(1);
+        });
+        curl_setopt($curl, CURLOPT_NOPROGRESS, false);
         $output = curl_exec($curl);
         curl_close($curl);
         return $output;
     }
-    
-    private function validateURL(string $url, int $validationAttempts = 3) : bool
+
+    private function validateURL(string $url, int $validationAttempts = 3): bool
     {
         while (true) {
             $headers = get_headers($url, 1);
-            
+
             if (!empty($headers["Content-Length"])) {
                 return true;
             } elseif ($headers === False) {
