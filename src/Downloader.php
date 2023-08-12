@@ -8,6 +8,7 @@ class Downloader
     private object $events;
     private string $errorText = '';
     private int $downloadAttempts = 10;
+    private bool $curlNoProgress = true;
 
     public static function get(): self
     {
@@ -121,7 +122,7 @@ class Downloader
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, [$this, 'curlDownloadProgressCallback']);
-        curl_setopt($curl, CURLOPT_NOPROGRESS, false);
+        curl_setopt($curl, CURLOPT_NOPROGRESS, $this->curlNoProgress);
         $output = curl_exec($curl);
         curl_close($curl);
         return $output;
@@ -130,9 +131,15 @@ class Downloader
     public function curlDownloadProgressCallback($resource, $downloadSize, $downloaded, $uploadSize, $uploaded)
     {
         if ($downloadSize > 0) {
-            echo ($downloaded / 1000000) . 'mb / ' .  ($downloadSize / 1000000) . 'mb';
+            echo ($downloaded / 1000000) . 'mb / ' .  ($downloadSize / 1000000) . 'mb' . PHP_EOL;
         }
         flush();
+        sleep(3);
+    }
+
+    public function showCurlDownloadProgress(): void
+    {
+        $this->curlNoProgress = false;
     }
 
     private function validateURL(string $url, int $validationAttempts = 3): bool
