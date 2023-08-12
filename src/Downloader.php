@@ -120,17 +120,19 @@ class Downloader
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, static function ($resource, $download_size, $downloaded, $upload_size, $uploaded) {
-            if ($download_size > 0)
-                echo $downloaded / $download_size  * 100;
-            ob_flush();
-            flush();
-            sleep(1);
-        });
+        curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, [$this, 'curlDownloadProgressCallback']);
         curl_setopt($curl, CURLOPT_NOPROGRESS, false);
         $output = curl_exec($curl);
         curl_close($curl);
         return $output;
+    }
+
+    public function curlDownloadProgressCallback($resource, $downloadSize, $downloaded, $uploadSize, $uploaded)
+    {
+        if ($downloadSize > 0) {
+            echo ($downloaded / 1000000) . 'mb / ' .  ($downloadSize / 1000000) . 'mb';
+        }
+        flush();
     }
 
     private function validateURL(string $url, int $validationAttempts = 3): bool
