@@ -130,11 +130,18 @@ class Downloader
 
     public function curlDownloadProgressCallback($resource, $downloadSize, $downloaded, $uploadSize, $uploaded)
     {
+        static $previousProgress = 0;
+
         if ($downloadSize > 0) {
-            echo ($downloaded / 1000000) . 'mb / ' .  ($downloadSize / 1000000) . 'mb' . PHP_EOL;
+            $downloadedInMb = $downloaded / 1000000;
+            if (($downloadedInMb - $previousProgress) >= 1) {
+                echo $downloadedInMb . 'mb / ' .  ($downloadSize / 1000000) . 'mb' . PHP_EOL;
+            }
+
+            $previousProgress = $downloadedInMb;
         }
+
         flush();
-        sleep(3);
     }
 
     public function showCurlDownloadProgress(): void
