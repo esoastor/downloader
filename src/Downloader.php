@@ -140,6 +140,10 @@ class Downloader
             }
         }
 
+        if ($downloaded === $downloadSize) {
+            $previousProgress = 0;
+        }
+
         flush();
     }
 
