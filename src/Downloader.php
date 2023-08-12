@@ -136,9 +136,8 @@ class Downloader
             $downloadedInMb = $downloaded / 1000000;
             if (($downloadedInMb - $previousProgress) >= 1) {
                 echo $downloadedInMb . 'mb / ' .  ($downloadSize / 1000000) . 'mb' . PHP_EOL;
+                $previousProgress = $downloadedInMb;
             }
-
-            $previousProgress = $downloadedInMb;
         }
 
         flush();
