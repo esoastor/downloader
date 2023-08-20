@@ -8,7 +8,8 @@ class Downloader
     private object $events;
     private string $errorText = '';
     private int $downloadAttempts = 10;
-    private bool $curlNoProgress = true;
+
+    private callable $downloadProgressCallback;
 
     public static function get(): self
     {
@@ -20,7 +21,7 @@ class Downloader
         return $downloader;
     }
 
-    public function enableDefaultReports()
+    public function enableDefaultReports(): void
     {
         $this->addListeners('Success', [Base\Default\SuccessConsoleReport::class]);
         $this->addListeners('Skip', [Base\Default\SkipConsoleReport::class]);
@@ -28,7 +29,7 @@ class Downloader
         $this->addListeners('Error', [Base\Default\ErrorConsoleReport::class]);
     }
 
-    public function setEvents(Events $events)
+    public function setEvents(Events $events): void
     {
         $this->events = $events;
     }
@@ -37,6 +38,12 @@ class Downloader
     {
         $this->events->addListeners($eventName, $listenerClassNames);
     }
+
+    public function setDownloadCallback(callable $callback): void
+    {
+        $this->downloadProgressCallback = $callback;
+    }
+
 
     /**
      * @param $stryctureInfo принимает структуру вида [folder_name] => [file_name => file_link...], вложенность может быть любой
@@ -121,35 +128,15 @@ class Downloader
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, [$this, 'curlDownloadProgressCallback']);
-        curl_setopt($curl, CURLOPT_NOPROGRESS, $this->curlNoProgress);
+
+        if (isset($this->downloadProgressCallback)) {
+            curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, $this->downloadProgressCallback);
+            curl_setopt($curl, CURLOPT_NOPROGRESS, false);
+        }
+
         $output = curl_exec($curl);
         curl_close($curl);
         return $output;
-    }
-
-    public function curlDownloadProgressCallback($resource, $downloadSize, $downloaded, $uploadSize, $uploaded)
-    {
-        static $previousProgress = 0;
-
-        if ($downloadSize > 0) {
-            $downloadedInMb = $downloaded / 1000000;
-            if (($downloadedInMb - $previousProgress) >= 1) {
-                echo $downloadedInMb . 'mb / ' .  ($downloadSize / 1000000) . 'mb' . PHP_EOL;
-                $previousProgress = $downloadedInMb;
-            }
-        }
-
-        if ($downloaded === $downloadSize) {
-            $previousProgress = 0;
-        }
-
-        flush();
-    }
-
-    public function showCurlDownloadProgress(): void
-    {
-        $this->curlNoProgress = false;
     }
 
     private function validateURL(string $url, int $validationAttempts = 3): bool
