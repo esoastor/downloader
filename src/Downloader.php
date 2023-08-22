@@ -9,7 +9,7 @@ class Downloader
     private string $errorText = '';
     private int $downloadAttempts = 10;
 
-    private callable $downloadProgressCallback;
+    private $downloadProgressCallback;
 
     public static function get(): self
     {
