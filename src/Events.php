@@ -1,6 +1,6 @@
 <?php
 
-namespace Downloader;
+namespace Esoastor\Downloader;
 
 class Events
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Downloader\Base;
+namespace Esoastor\Downloader\Base;
 
 interface Listener
 {

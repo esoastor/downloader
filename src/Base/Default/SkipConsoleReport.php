@@ -1,7 +1,7 @@
 <?php
-namespace Downloader\Base\Default;
+namespace Esoastor\Downloader\Base\Default;
 
-class SkipConsoleReport implements \Downloader\Base\Listener
+class SkipConsoleReport implements \Esoastor\Downloader\Base\Listener
 {
     public function execute(...$args): void
     {

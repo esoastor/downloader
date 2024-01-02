@@ -2,7 +2,8 @@
     "name": "esoastor/downloader",
     "autoload": {
         "psr-4": {
-            "Downloader\\": "src/"
+            "Esoastor\\Downloader\\": "src/",
+            "Esoastor\\Downloader\\Sandbox\\": "sandbox/"
         }
     },
     "require": {

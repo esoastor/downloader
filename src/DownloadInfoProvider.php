@@ -1,6 +1,6 @@
 <?php
 
-namespace Downloader;
+namespace Esoastor\Downloader;
 
 /**
  * Provides array with structure to download
@@ -8,7 +8,7 @@ namespace Downloader;
 interface DownloadInfoProvider
 {
     /**
-     * @return array [folder_name] => [file_name => file_link...], вложенность может быть любой
+     * @return array
      */
     public function provide(): array;
 }

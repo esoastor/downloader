@@ -1,6 +1,6 @@
 <?php
 
-namespace Downloader;
+namespace Esoastor\Downloader;
 
 
 class Downloader
@@ -186,9 +186,10 @@ class Downloader
         static $previousProgress = 0;
 
         if ($downloadSize > 0) {
-            $downloadedInMb = $downloaded / 1000000;
+            $downloadedInMb = $this->formatFileSize($downloaded);
+            $downloadSizeInMb = $this->formatFileSize($downloadSize);
             if (($downloadedInMb - $previousProgress) >= 1) {
-                echo $downloadedInMb . 'mb / ' . ($downloadSize / 1000000) . 'mb' . PHP_EOL;
+                echo $downloadedInMb . ' mb / ' . $downloadSizeInMb . ' mb' . PHP_EOL;
                 $previousProgress = $downloadedInMb;
             }
         }
@@ -218,5 +219,10 @@ class Downloader
                 return false;
             }
         }
+    }
+
+    private function formatFileSize(float $fileSizeInBytes): float
+    {
+        return round($fileSizeInBytes / 1000000, 2);
     }
 }

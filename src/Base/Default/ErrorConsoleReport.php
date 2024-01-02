@@ -1,7 +1,7 @@
 <?php
-namespace Downloader\Base\Default;
+namespace Esoastor\Downloader\Base\Default;
 
-class ErrorConsoleReport implements \Downloader\Base\Listener
+class ErrorConsoleReport implements \Esoastor\Downloader\Base\Listener
 {
     public function execute(...$args): void
     {
