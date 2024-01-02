@@ -1,11 +1,10 @@
 <?php
 include_once '../vendor/autoload.php';
-include_once 'ExampleProvider.php';
 
-use Example\ExampleProvider;
+use \Esoastor\Downloader\Sandbox\ExampleProvider;
 
 $provider = new ExampleProvider();
-$downloader = \Downloader\Downloader::get();
+$downloader = \Esoastor\Downloader\Downloader::get();
 $downloader->enableConsoleReports();
 $downloader->showDownloadProgress();
 
