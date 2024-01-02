@@ -9,6 +9,18 @@ class Downloader
     private string $errorText = '';
     private int $downloadAttempts = 10;
 
+    /**
+     *  is files overwritten if already existing
+     */
+    private bool $overwriteMode = false;
+
+    /**
+     * Folder to download passed to downloader structure
+     */
+    private string $rootFolder = '.';
+
+    private bool $showDownloadProgress = false;
+
     private $downloadProgressCallback;
 
     public static function get(): self
@@ -21,7 +33,7 @@ class Downloader
         return $downloader;
     }
 
-    public function enableDefaultReports(): void
+    public function enableConsoleReports(): void
     {
         $this->addListeners('Success', [Base\Default\SuccessConsoleReport::class]);
         $this->addListeners('Skip', [Base\Default\SkipConsoleReport::class]);
@@ -29,42 +41,58 @@ class Downloader
         $this->addListeners('Error', [Base\Default\ErrorConsoleReport::class]);
     }
 
-    public function setEvents(Events $events): void
-    {
-        $this->events = $events;
-    }
-
-    public function addListeners(string $eventName, array $listenerClassNames)
+    public function addListeners(string $eventName, array $listenerClassNames): void
     {
         $this->events->addListeners($eventName, $listenerClassNames);
     }
 
+    public function setOverwriteMode(bool $mode): void
+    {
+        $this->overwriteMode = $mode;
+    }
+
+    public function setRootFolder(string $folder): void
+    {
+        $this->rootFolder = $folder;
+    }
+
+    /**
+     * This callback can be used to create custom download progress bar
+     */
     public function setDownloadCallback(callable $callback): void
     {
         $this->downloadProgressCallback = $callback;
     }
 
-
-    /**
-     * @param $stryctureInfo принимает структуру вида [folder_name] => [file_name => file_link...], вложенность может быть любой
-     */
-    public function download(array $structureInfo, string $parentFolder = '.', bool $overwrite = false): void
+    public function showDownloadProgress(): void
     {
-        if ($parentFolder !== '.') {
-            $this->createDirIfNotExists($parentFolder);
+        $this->showDownloadProgress = true;
+    }
+
+    public function download(DownloadInfoProvider $downloadInfoProvider): void
+    {
+        if ($this->rootFolder !== '.') {
+            $this->createDirIfNotExists($this->rootFolder);
         }
 
+        $structureInfo = $downloadInfoProvider->provide();
+
+        $this->process($structureInfo, $this->rootFolder);
+    }
+
+    private function process(array $structureInfo, string $folderToDownload): void
+    {
         foreach ($structureInfo as $name => $content) {
             if (is_array($content)) {
-                $dirName = $parentFolder . '/' . $name;
+                $dirName = $folderToDownload . '/' . $name;
                 $this->createDirIfNotExists($dirName);
-                $this->download($content, $dirName);
+                $this->process($content, $dirName);
             } else {
                 $url = $content;
 
-                $filePath = $parentFolder . '/' . $name;
+                $filePath = $folderToDownload . '/' . $name;
 
-                if (is_file($filePath) && filesize($filePath) > 0 && $overwrite === false) {
+                if ($this->overwriteMode === false && is_file($filePath) && filesize($filePath) > 0) {
                     $this->events->execute('Skip', $name);
                     continue;
                 }
@@ -90,31 +118,40 @@ class Downloader
         }
     }
 
+    private function setEvents(Events $events): void
+    {
+        $this->events = $events;
+    }
+
+
     private function downloadFileToFolder(string $filePath, string $url): bool
     {
         $attempts = $this->downloadAttempts;
         while (true) {
             $file = $this->fileGetContentCurl($url);
 
-            if (mb_strlen($file) > 0) {
+            if ($file !== '') {
                 file_put_contents($filePath, $file);
                 return true;
+            }
+
+            if ($attempts > 0) {
+                $this->errorText = "download error, attempts left: $attempts";
+                --$attempts;
             } else {
-                if ($attempts > 0) {
-                    $this->errorText = "download error, attempts left: $attempts";
-                    $attempts -= 1;
-                } else {
-                    $this->errorText = "download failed";
-                    return false;
-                }
+                $this->errorText = "download failed";
+                return false;
             }
         }
     }
 
     private function createDirIfNotExists(string $dirname): void
     {
-        if (!is_dir($dirname)) {
-            mkdir($dirname);
+        if (is_dir($dirname)) {
+            return;
+        }
+        if (!mkdir($dirname) && !is_dir($dirname)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
         }
     }
 
@@ -129,30 +166,54 @@ class Downloader
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
-        if (isset($this->downloadProgressCallback)) {
-            curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, $this->downloadProgressCallback);
+        if ($this->showDownloadProgress) {
+            if (isset($this->downloadProgressCallback)) {
+                curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, $this->downloadProgressCallback);
+            } else {
+                curl_setopt($curl, CURLOPT_PROGRESSFUNCTION, [$this, 'defaultDownloadProgressCallback']);
+            }
             curl_setopt($curl, CURLOPT_NOPROGRESS, false);
         }
+
 
         $output = curl_exec($curl);
         curl_close($curl);
         return $output;
     }
 
-    private function validateURL(string $url, int $validationAttempts = 3): bool
+    public function defaultDownloadProgressCallback($resource, $downloadSize, $downloaded, $uploadSize, $uploaded): void
     {
+        static $previousProgress = 0;
+
+        if ($downloadSize > 0) {
+            $downloadedInMb = $downloaded / 1000000;
+            if (($downloadedInMb - $previousProgress) >= 1) {
+                echo $downloadedInMb . 'mb / ' . ($downloadSize / 1000000) . 'mb' . PHP_EOL;
+                $previousProgress = $downloadedInMb;
+            }
+        }
+
+        if ($downloaded === $downloadSize) {
+            $previousProgress = 0;
+        }
+
+        flush();
+    }
+
+    private function validateURL(string $url): bool
+    {
+        $validationAttempts = 3;
+
         while (true) {
             $headers = get_headers($url, 1);
 
             if (!empty($headers["Content-Length"])) {
                 return true;
-            } elseif ($headers === False) {
-                if ($validationAttempts > 0) {
-                    echo "validation error, attempts left: $validationAttempts\n";
-                    $validationAttempts -= 1;
-                } else {
-                    return false;
-                }
+            }
+
+            if (($headers === False) && $validationAttempts > 0) {
+                echo "validation error, attempts left: $validationAttempts\n";
+                --$validationAttempts;
             } else {
                 return false;
             }
