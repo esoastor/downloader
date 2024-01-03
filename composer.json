@@ -8,5 +8,10 @@
     "require": {
         "php": ">=8.0",
         "ext-curl": "*"
+    },
+    "scripts": {
+        "tag-patch": "./push-tag.sh patch",
+        "tag-minor": "./push-tag.sh minor",
+        "tag-major": "./push-tag.sh major"
     }
 }
