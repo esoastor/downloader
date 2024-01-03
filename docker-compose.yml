@@ -3,6 +3,8 @@ version: '3.9'
 services:
   client:
     build: .
+    tty: true
+    stdin_open: true
     ports:
       - "8899:5000"
     volumes:
