@@ -8,5 +8,5 @@ interface FileHandler
     /*
      * Do something with this recieved $file 
      */
-    public function handle(string $filePath, string $file);
+    public function handle(string $filePath, string $file): void;
 }
