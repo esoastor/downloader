@@ -2,22 +2,21 @@
 
 ## Usage ##
 
-Create class that implements `Downloader\DownloadInfoProvider` interface. 
-Object of this class provides structure to download: `[folder_name] => [file_name => file_link...]` (nesting level not restricted).  
+Create array with structure to download: `[folder_name => [file_name => file_link...]` (nesting level not restricted).  
 
 Get downloader with `Downloader::get()`. Use `enableConsoleReports()` to enable console report (messages about success/error etc).
 
 Configurate custom event handlers if needed (see **event listeners**).
 
 ```php
-$provider = new MyProvider();
+$downloadData = ['images' => ['img1.png' => 'www.img/img1.png']];
 $downloader = \Downloader\Downloader::get();
 $downloader->enableConsoleReports();
 $downloader->showDownloadProgress();
 $downloader->setRootFolder('/home/users/me/Download/TargetFolder');
 $downloader->setOverwriteMode(true);
 
-$downloader->download($provider);
+$downloader->download($downloadData);
 ```
 
 ## Downloader configuration
@@ -39,6 +38,10 @@ Default value - **'.'** (current folder).
 `showDownloadProgress()` shows console report of file download progress. 
 Custom progress report callback will be used is setted (by `setDownloadCallback` method), if not - default report callback will be used.
 
+### setFileHandler(FileHandler $fileHandler) thing that do something with recieved file
+By default $file will be saved in $filePath with 'file_put_content'. You cab make your file handler.
+To do so create class that implements Esoastor\Downloader\Base\FileHandler interface and set its object to `downloader` with `setFileHandler()`
+
 ### Event listeners ###
 There are four types of events - 'Start', 'Success', 'Error', 'Skip', 'Invalid'
 1 - create event listener (Downloader\Base\Listener interface). 
@@ -51,6 +54,3 @@ $downloader->addListeners('Success', [MyListeners\Success::class]);
 $downloader->addListeners('Error', [MyListeners\Error::class]);
 $downloader->addListeners('Invalid', [MyListeners\Invalid::class]);
 ```
-
-## Docker environment
-Can be used by docker. Content of example folder can be used as base.

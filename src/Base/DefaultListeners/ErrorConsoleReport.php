@@ -1,5 +1,5 @@
 <?php
-namespace Esoastor\Downloader\Base\Default;
+namespace Esoastor\Downloader\Base\DefaultListeners;
 
 class ErrorConsoleReport implements \Esoastor\Downloader\Base\Listener
 {

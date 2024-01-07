@@ -2,10 +2,13 @@
 
 namespace Esoastor\Downloader;
 
+use Esoastor\Downloader\Base\FileHandler;
 
 class Downloader
 {
-    private object $events;
+    private Events $events;
+    private FileHandler $fileHandler;
+
     private string $errorText = '';
     private int $downloadAttempts = 10;
 
@@ -30,15 +33,17 @@ class Downloader
         $events = Events::get();
         $downloader->setEvents($events);
 
+        $downloader->setFileHandler(new FileHandler());
+
         return $downloader;
     }
 
     public function enableConsoleReports(): void
     {
-        $this->addListeners('Success', [Base\Default\SuccessConsoleReport::class]);
-        $this->addListeners('Skip', [Base\Default\SkipConsoleReport::class]);
-        $this->addListeners('Invalid', [Base\Default\InvalidConsoleReport::class]);
-        $this->addListeners('Error', [Base\Default\ErrorConsoleReport::class]);
+        $this->addListeners('Success', [Base\DefaultListeners\SuccessConsoleReport::class]);
+        $this->addListeners('Skip', [Base\DefaultListeners\SkipConsoleReport::class]);
+        $this->addListeners('Invalid', [Base\DefaultListeners\InvalidConsoleReport::class]);
+        $this->addListeners('Error', [Base\DefaultListeners\ErrorConsoleReport::class]);
     }
 
     public function addListeners(string $eventName, array $listenerClassNames): void
@@ -56,6 +61,11 @@ class Downloader
         $this->rootFolder = $folder;
     }
 
+    public function setFileHandler(FileHandler $fileHandler): void
+    {
+        $this->fileHandler = $fileHandler;
+    }
+
     /**
      * This callback can be used to create custom download progress bar
      */
@@ -69,15 +79,13 @@ class Downloader
         $this->showDownloadProgress = true;
     }
 
-    public function download(DownloadInfoProvider $downloadInfoProvider): void
+    public function download(array $downloadInfo): void
     {
         if ($this->rootFolder !== '.') {
             $this->createDirIfNotExists($this->rootFolder);
         }
 
-        $structureInfo = $downloadInfoProvider->provide();
-
-        $this->process($structureInfo, $this->rootFolder);
+        $this->process($downloadInfo, $this->rootFolder);
     }
 
     private function process(array $structureInfo, string $folderToDownload): void
@@ -131,7 +139,7 @@ class Downloader
             $file = $this->fileGetContentCurl($url);
 
             if ($file !== '') {
-                file_put_contents($filePath, $file);
+                $this->fileHandler->handle($filePath, $file);
                 return true;
             }
 
