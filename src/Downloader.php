@@ -2,6 +2,7 @@
 
 namespace Esoastor\Downloader;
 
+use Esoastor\Downloader\Base\DefaultFileHandler;
 use Esoastor\Downloader\Base\FileHandler;
 
 class Downloader
@@ -33,7 +34,7 @@ class Downloader
         $events = Events::get();
         $downloader->setEvents($events);
 
-        $downloader->setFileHandler(new FileHandler());
+        $downloader->setFileHandler(new DefaultFileHandler());
 
         return $downloader;
     }
