@@ -3,12 +3,15 @@
 namespace Esoastor\Downloader;
 
 use Esoastor\Downloader\Base\DefaultFileHandler;
+use Esoastor\Downloader\Base\DefaultDirHandler;
 use Esoastor\Downloader\Base\FileHandler;
+use Esoastor\Downloader\Base\DirHandler;
 
 class Downloader
 {
     private Events $events;
     private FileHandler $fileHandler;
+    private DirHandler $dirHandler;
 
     private string $errorText = '';
     private int $downloadAttempts = 10;
@@ -35,6 +38,8 @@ class Downloader
         $downloader->setEvents($events);
 
         $downloader->setFileHandler(new DefaultFileHandler());
+        $downloader->setDirHandler(new DefaultDirHandler());
+
 
         return $downloader;
     }
@@ -65,6 +70,11 @@ class Downloader
     public function setFileHandler(FileHandler $fileHandler): void
     {
         $this->fileHandler = $fileHandler;
+    }
+
+    public function setDirHandler(DirHandler $dirHandler): void
+    {
+        $this->dirHandler = $dirHandler;
     }
 
     /**
@@ -156,12 +166,7 @@ class Downloader
 
     private function createDirIfNotExists(string $dirname): void
     {
-        if (is_dir($dirname)) {
-            return;
-        }
-        if (!mkdir($dirname) && !is_dir($dirname)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
-        }
+        $this->dirHandler->handle($dirname);
     }
 
     private function fileGetContentCurl(string $url): string

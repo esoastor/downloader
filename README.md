@@ -42,6 +42,10 @@ Custom progress report callback will be used is setted (by `setDownloadCallback`
 By default $file will be saved in $filePath with 'file_put_content'. You cab make your file handler.
 To do so create class that implements Esoastor\Downloader\Base\FileHandler interface and set its object to `downloader` with `setFileHandler()`
 
+### setDirHandler(DirHandler $dirHandler) thing that do something with dir when it needs to be created
+By default $dirHandler created with 'mkdir'. You cab make your dir handler.
+To do so create class that implements Esoastor\Downloader\Base\DirHandler interface and set its object to `downloader` with `setFileHandler()`
+
 ### Event listeners ###
 There are four types of events - 'Start', 'Success', 'Error', 'Skip', 'Invalid'
 1 - create event listener (Downloader\Base\Listener interface). 
