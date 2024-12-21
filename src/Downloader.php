@@ -159,7 +159,7 @@ class Downloader
         if (is_dir($dirname)) {
             return;
         }
-        if (!mkdir($dirname) && !is_dir($dirname)) {
+        if (!mkdir($dirname, 0777, true) && !is_dir($dirname)) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
         }
     }
