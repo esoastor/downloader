@@ -102,25 +102,25 @@ class Downloader
                 $filePath = $folderToDownload . '/' . $name;
 
                 if ($this->overwriteMode === false && is_file($filePath) && filesize($filePath) > 0) {
-                    $this->events->execute('Skip', $name);
+                    $this->events->execute('Skip', $filePath);
                     continue;
                 }
 
                 $isURLValid = $this->validateURL($url);
 
                 if (!$isURLValid) {
-                    $this->events->execute('Invalid', $name);
+                    $this->events->execute('Invalid', $filePath);
                     continue;
                 }
 
-                $this->events->execute('Start', $name);
+                $this->events->execute('Start', $filePath);
 
                 $isDownloaded = $this->downloadFileToFolder($filePath, $url);
 
                 if ($isDownloaded) {
-                    $this->events->execute('Success', $name);
+                    $this->events->execute('Success', $filePath);
                 } else {
-                    $this->events->execute('Error', $name, $this->errorText);
+                    $this->events->execute('Error', $filePath, $this->errorText);
                     $this->errorText = '';
                 }
             }
